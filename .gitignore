@@ -1,0 +1,40 @@
+# Dependency directories (Loại bỏ thư mục node_modules)
+node_modules/
+**/node_modules/
+
+# Environment configurations (Quan trọng: bảo mật các thông tin bí mật trong .env)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+**/.env
+**/.env.local
+**/.*.env
+
+# Build outputs (Thư mục build)
+dist/
+**/dist/
+build/
+**/build/
+.next/
+**/out/
+
+# Logs (Nhật ký lỗi/debug)
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# System files & IDEs (Tệp hệ thống và cấu hình editor)
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
