@@ -8,7 +8,9 @@ import sql, { poolPromise } from "../config/db.js";
 const vnp_TmnCode = "ZBVDBUOS";
 const vnp_HashSecret = "S6L9CBYCLLHJDKO4IMS44B79LZY1PBQQ";
 const vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-const vnp_ReturnUrl = "http://localhost:5173/tenant/payment-return";
+const vnp_ReturnUrl = process.env.FRONTEND_URL
+  ? `${process.env.FRONTEND_URL}/tenant/payment-return`
+  : "http://localhost:5173/tenant/payment-return";
 
 export const generatePaymentUrlService = async (amount, invoiceId, ipAddr) => {
   let date = new Date();

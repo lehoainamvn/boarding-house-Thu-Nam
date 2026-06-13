@@ -38,7 +38,7 @@ const server = http.createServer(app);
 /* SOCKET */
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
     methods: ["GET", "POST"]
   }
 });
@@ -110,7 +110,7 @@ socket.on("send_message", async (data) => {
 });
 // ===== MIDDLEWARE =====
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
   credentials: true
 }));
 
