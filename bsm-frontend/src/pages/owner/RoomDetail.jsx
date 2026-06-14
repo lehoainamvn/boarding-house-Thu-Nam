@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { getRoomById, updateRoom } from "../../api/roomApi";
 import { findTenantByEmail, assignTenantToRoom, removeTenantFromRoom } from "../../api/tenantApi";
+import { formatNumberWithDots, parseNumberFromDots } from "../../utils/format";
 
 export default function RoomDetail() {
   const { id } = useParams();
@@ -177,7 +178,7 @@ export default function RoomDetail() {
     }
   }
 
-  const money = (n) => n?.toLocaleString("vi-VN") + " đ";
+  const money = (n) => Number(n || 0).toLocaleString("vi-VN") + " đ";
   
   // Hàm format hiển thị ngày cho đẹp
   const formatDate = (dateString) => {
@@ -302,17 +303,12 @@ export default function RoomDetail() {
                   Giá phòng (đ)
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   className="w-full mt-1.5 px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                  value={priceForm.room_price}
+                  value={formatNumberWithDots(priceForm.room_price)}
                   onChange={(e) =>
-                    setPriceForm({ ...priceForm, room_price: e.target.value })
+                    setPriceForm({ ...priceForm, room_price: parseNumberFromDots(e.target.value) })
                   }
-                  onInput={(e) => {
-                    if (e.target.value.length > 1 && e.target.value.startsWith('0')) {
-                      e.target.value = e.target.value.replace(/^0+/, '');
-                    }
-                  }}
                 />
               </div>
 
@@ -321,20 +317,15 @@ export default function RoomDetail() {
                   Giá điện (đ/kWh)
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   className="w-full mt-1.5 px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                  value={priceForm.electric_price}
+                  value={formatNumberWithDots(priceForm.electric_price)}
                   onChange={(e) =>
                     setPriceForm({
                       ...priceForm,
-                      electric_price: e.target.value,
+                      electric_price: parseNumberFromDots(e.target.value),
                     })
                   }
-                  onInput={(e) => {
-                    if (e.target.value.length > 1 && e.target.value.startsWith('0')) {
-                      e.target.value = e.target.value.replace(/^0+/, '');
-                    }
-                  }}
                 />
               </div>
 
@@ -379,20 +370,15 @@ export default function RoomDetail() {
                     Giá nước (đ/m³)
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     className="w-full mt-1.5 px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    value={priceForm.water_price}
+                    value={formatNumberWithDots(priceForm.water_price)}
                     onChange={(e) =>
                       setPriceForm({
                         ...priceForm,
-                        water_price: e.target.value,
+                        water_price: parseNumberFromDots(e.target.value),
                       })
                     }
-                    onInput={(e) => {
-                      if (e.target.value.length > 1 && e.target.value.startsWith('0')) {
-                        e.target.value = e.target.value.replace(/^0+/, '');
-                      }
-                    }}
                   />
                 </div>
               ) : (
@@ -424,20 +410,15 @@ export default function RoomDetail() {
                       Giá / người
                     </label>
                     <input
-                      type="number"
+                      type="text"
                       className="w-full mt-1.5 px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                      value={priceForm.water_price_per_person}
+                      value={formatNumberWithDots(priceForm.water_price_per_person)}
                       onChange={(e) =>
                         setPriceForm({
                           ...priceForm,
-                          water_price_per_person: e.target.value,
+                          water_price_per_person: parseNumberFromDots(e.target.value),
                         })
                       }
-                      onInput={(e) => {
-                        if (e.target.value.length > 1 && e.target.value.startsWith('0')) {
-                          e.target.value = e.target.value.replace(/^0+/, '');
-                        }
-                      }}
                     />
                   </div>
                 </div>

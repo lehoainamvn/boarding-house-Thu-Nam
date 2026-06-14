@@ -65,7 +65,7 @@ export default function InvoiceDetail() {
     html2pdf().set(opt).from(element).save();
   }
 
-  const money = (n) => n.toLocaleString("vi-VN") + " đ";
+  const money = (n) => Number(n || 0).toLocaleString("vi-VN") + " đ";
 
   /* ================= LOADING ================= */
   if (loading) {

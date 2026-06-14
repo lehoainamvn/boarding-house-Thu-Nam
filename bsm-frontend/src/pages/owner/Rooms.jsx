@@ -184,7 +184,7 @@ export default function Rooms() {
                       <Wallet className="mx-auto mb-1 text-indigo-600" size={16} />
                       <p className="text-[11px] text-slate-500 font-medium mb-0.5">Giá phòng</p>
                       <p className="font-bold text-indigo-700 text-xs">
-                        {(room.room_price || 0).toLocaleString("vi-VN")} đ
+                        {(Number(room.room_price) || 0).toLocaleString("vi-VN")} đ
                       </p>
                     </div>
 
@@ -192,7 +192,7 @@ export default function Rooms() {
                       <Zap className="mx-auto mb-1 text-amber-500" size={16} />
                       <p className="text-[11px] text-slate-500 font-medium mb-0.5">Giá điện</p>
                       <p className="font-bold text-amber-700 text-xs">
-                        {(room.electric_price || 0).toLocaleString("vi-VN")} đ
+                        {(Number(room.electric_price) || 0).toLocaleString("vi-VN")} đ
                       </p>
                     </div>
 
@@ -200,7 +200,7 @@ export default function Rooms() {
                       <Droplet className="mx-auto mb-1 text-sky-500" size={16} />
                       <p className="text-[11px] text-slate-500 font-medium mb-0.5">Giá nước</p>
                       <p className="font-bold text-sky-700 text-xs">
-                        {(room.water_price || 0).toLocaleString("vi-VN")} đ
+                        {(Number(room.water_price) || 0).toLocaleString("vi-VN")} đ
                       </p>
                     </div>
                   </div>
