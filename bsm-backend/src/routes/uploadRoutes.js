@@ -36,8 +36,10 @@ router.post("/upload", upload.single("image"), (req, res) => {
       return res.status(400).json({ message: "Vui lòng chọn một file ảnh" });
     }
     
-    // Tạo link URL trả về cho Frontend
-    const imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+    // Tạo link URL động dựa trên request host (tự động nhận diện localhost hay domain online)
+    const host = req.get("host");
+    const protocol = host.includes("localhost") || host.includes("127.0.0.1") ? req.protocol : "https";
+    const imageUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
     
     return res.status(200).json({ url: imageUrl });
   } catch (error) {
