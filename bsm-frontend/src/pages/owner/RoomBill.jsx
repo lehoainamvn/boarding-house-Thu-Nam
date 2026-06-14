@@ -4,6 +4,7 @@ import { Zap, Droplet, Home, Wrench, Save, ArrowLeft, Calculator } from "lucide-
 import toast from "react-hot-toast";
 import { getInvoiceByRoomAndMonth, updateInvoice, createInvoice } from "../../api/invoiceApi";
 import { getMeterReadingByRoomAndMonth } from "../../api/meterApi";
+import { getSettings } from "../../api/settingsApi";
 import { formatNumberWithDots, parseNumberFromDots } from "../../utils/format";
 
 export default function RoomBill() {
@@ -36,9 +37,11 @@ export default function RoomBill() {
       if (!room) return;
 
       const month = monthStr;
+      let hasInvoice = false;
       try {
         const invoice = await getInvoiceByRoomAndMonth(room.id, month);
         if (invoice) {
+          hasInvoice = true;
           setExistingInvoice(invoice);
           // Pre-fill form with existing invoice data
           setOldElectric(invoice.electric_old || 0);
@@ -53,6 +56,18 @@ export default function RoomBill() {
         // Nếu không có hóa đơn thì không làm gì, chỉ sửa khi thực sự có lỗi khác
         if (err.message !== "Lỗi tải hóa đơn") {
           toast.error(err.message);
+        }
+      }
+
+      // If no existing invoice, load default service fee from settings
+      if (!hasInvoice) {
+        try {
+          const settingsData = await getSettings();
+          if (settingsData && settingsData.default_service_fee !== undefined) {
+            setServiceFee(Number(settingsData.default_service_fee) || 0);
+          }
+        } catch (err) {
+          console.error("Failed to load settings:", err);
         }
       }
 
@@ -129,6 +144,7 @@ export default function RoomBill() {
         water_used: waterUsed,
         electric_cost: electricCost,
         water_cost: waterCost,
+        service_fee: serviceFee, // Thêm service_fee vào payload gửi lên API
         total_amount: total,
       };
 

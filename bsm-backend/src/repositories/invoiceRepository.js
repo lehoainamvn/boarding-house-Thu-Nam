@@ -67,6 +67,7 @@ export async function createInvoiceRepo(data) {
     .input("water_used", sql.Int, data.water_used)
     .input("electric_cost", sql.Decimal(12,2), data.electric_cost)
     .input("water_cost", sql.Decimal(12,2), data.water_cost)
+    .input("service_fee", sql.Decimal(12,2), data.service_fee || 0) // Lưu vết chi phí phát sinh
     .input("total_amount", sql.Decimal(12,2), data.total_amount)
     .query(`
       INSERT INTO invoices (
@@ -74,6 +75,7 @@ export async function createInvoiceRepo(data) {
         room_price,
         electric_used, water_used,
         electric_cost, water_cost,
+        service_fee,
         total_amount
       )
       VALUES (
@@ -81,6 +83,7 @@ export async function createInvoiceRepo(data) {
         @room_price,
         @electric_used, @water_used,
         @electric_cost, @water_cost,
+        @service_fee,
         @total_amount
       )
     `);
@@ -251,6 +254,7 @@ export async function updateInvoiceById(invoiceId, data) {
     .input("water_used", sql.Int, data.water_used)
     .input("electric_cost", sql.Decimal(12,2), data.electric_cost)
     .input("water_cost", sql.Decimal(12,2), data.water_cost)
+    .input("service_fee", sql.Decimal(12,2), data.service_fee || 0) // Cập nhật chi phí phát sinh
     .input("total_amount", sql.Decimal(12,2), data.total_amount)
     .query(`
       UPDATE invoices
@@ -259,6 +263,7 @@ export async function updateInvoiceById(invoiceId, data) {
           water_used = @water_used,
           electric_cost = @electric_cost,
           water_cost = @water_cost,
+          service_fee = @service_fee,
           total_amount = @total_amount
       WHERE id = @invoice_id
     `);
@@ -369,9 +374,16 @@ export async function getInvoiceDetailByTenantId(tenantId, invoiceId) {
     .input("tenant_id", sql.Int, tenantId)
     .input("invoice_id", sql.Int, invoiceId)
     .query(`
-      SELECT i.*, r.room_name
+      SELECT 
+        i.*, 
+        r.room_name,
+        s.bank_name,
+        s.bank_account,
+        s.bank_owner,
+        s.qr_image_url
       FROM invoices i
       JOIN rooms r ON i.room_id = r.id
+      LEFT JOIN settings s ON r.owner_id = s.owner_id
       WHERE i.id = @invoice_id
         AND i.tenant_id = @tenant_id
     `);
