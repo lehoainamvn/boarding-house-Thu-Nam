@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { getSocket } from "../../socket";
-import { Search, Send, MessageSquare, Phone, Video, MoreVertical, CheckCheck, Paperclip, X, Image as ImageIcon } from "lucide-react";
+import { Search, Send, MessageSquare, Phone, Video, MoreVertical, CheckCheck, Paperclip, X, Image as ImageIcon, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { getMessageRooms, getMessagesByRoom, sendMessageApi } from "../../api/messageApi";
@@ -161,10 +161,10 @@ export default function Messages() {
   );
 
   return (
-    <div className="flex h-[calc(100vh-120px)] min-h-[600px] bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className="flex h-[calc(100vh-120px)] min-h-[450px] md:min-h-[600px] bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
 
       {/* SIDEBAR */}
-      <div className="w-80 border-r border-slate-200 flex flex-col bg-white">
+      <div className={`w-full md:w-80 border-r border-slate-200 flex flex-col bg-white ${selectedRoom ? "hidden md:flex" : "flex"}`}>
         
         {/* Sidebar Header */}
         <div className="p-5 flex justify-between items-center border-b border-slate-100">
@@ -239,7 +239,7 @@ export default function Messages() {
       </div>
 
       {/* CHAT AREA */}
-      <div className="flex-1 flex flex-col bg-slate-50/50">
+      <div className={`flex-1 flex flex-col bg-slate-50/50 ${!selectedRoom ? "hidden md:flex" : "flex"}`}>
 
         {!selectedRoom ? (
           <div className="flex flex-col items-center justify-center h-full text-slate-400">
@@ -254,6 +254,13 @@ export default function Messages() {
             {/* Chat Header */}
             <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white shadow-sm z-50">
               <div className="flex items-center gap-3">
+                {/* Back button on mobile */}
+                <button
+                  onClick={() => setSelectedRoom(null)}
+                  className="md:hidden p-1.5 -ml-1 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-800 transition-colors"
+                >
+                  <ArrowLeft size={20} />
+                </button>
                 <div className="relative">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white flex items-center justify-center font-semibold">
                     {selectedRoom.tenant_name.charAt(0).toUpperCase()}

@@ -4,6 +4,7 @@ import { Zap, Droplet, Home, Wrench, Save, ArrowLeft, Calculator } from "lucide-
 import toast from "react-hot-toast";
 import { getInvoiceByRoomAndMonth, updateInvoice, createInvoice } from "../../api/invoiceApi";
 import { getMeterReadingByRoomAndMonth } from "../../api/meterApi";
+import { formatNumberWithDots, parseNumberFromDots } from "../../utils/format";
 
 export default function RoomBill() {
   const { state } = useLocation();
@@ -105,12 +106,12 @@ export default function RoomBill() {
       : waterUsed * room.water_price;
 
   const total =
-    room.room_price +
+    Number(room.room_price || 0) +
     electricCost +
     waterCost +
-    Number(serviceFee);
+    Number(serviceFee || 0);
 
-  const money = (n) => n.toLocaleString("vi-VN") + " đ";
+  const money = (n) => Number(n || 0).toLocaleString("vi-VN") + " đ";
 
   /* ===== SAVE BILL ===== */
   async function handleSaveInvoice() {
@@ -335,14 +336,10 @@ export default function RoomBill() {
             <div>
               <label className="text-xs font-semibold text-slate-500 uppercase">Tiền dịch vụ cộng thêm (đ)</label>
               <input
-                type="number"
+                type="text"
                 placeholder="Ví dụ: tiền sửa chữa, vệ sinh thêm..."
-                onChange={(e) => setServiceFee(+e.target.value)}
-                onInput={(e) => {
-                  if (e.target.value.length > 1 && e.target.value.startsWith('0')) {
-                    e.target.value = e.target.value.replace(/^0+/, '');
-                  }
-                }}
+                value={formatNumberWithDots(serviceFee)}
+                onChange={(e) => setServiceFee(parseNumberFromDots(e.target.value))}
                 className="w-full mt-1.5 px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
               />
             </div>

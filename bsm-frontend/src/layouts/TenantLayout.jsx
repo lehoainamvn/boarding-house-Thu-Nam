@@ -6,7 +6,8 @@ import {
   Receipt,
   BarChart3,
   MessageSquare,
-  Shield
+  Shield,
+  Menu
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -22,6 +23,9 @@ export default function TenantLayout() {
   const userMenuRef = useRef(null);
   const notifyRef = useRef(null);
 
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    return typeof window !== "undefined" ? window.innerWidth >= 768 : true;
+  });
   const [openUserMenu, setOpenUserMenu] = useState(false);
   const [openNotify, setOpenNotify] = useState(false);
   const [showAllModal, setShowAllModal] = useState(false);
@@ -110,19 +114,29 @@ export default function TenantLayout() {
     <div className="flex h-screen bg-slate-50/50 font-sans overflow-hidden text-slate-900">
       <Sidebar 
         menu={menu} 
-        sidebarOpen={true} 
-        collapsible={false}
+        sidebarOpen={sidebarOpen} 
+        setSidebarOpen={setSidebarOpen}
+        collapsible={true}
         widthClass="w-64"
         handleLogout={handleLogout} 
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-6 shadow-sm relative z-10">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-            <h1 className="font-bold text-slate-800 text-sm md:text-base tracking-tight">
-              Hệ thống quản lý phòng trọ
-            </h1>
+        <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-4 md:px-6 shadow-sm relative z-10">
+          <div className="flex items-center gap-3">
+            {/* Hamburger menu button for mobile */}
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="md:hidden p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            >
+              <Menu size={20} />
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+              <h1 className="font-bold text-slate-800 text-sm md:text-base tracking-tight">
+                Hệ thống quản lý phòng trọ
+              </h1>
+            </div>
           </div>
 
           <div className="flex items-center gap-4">

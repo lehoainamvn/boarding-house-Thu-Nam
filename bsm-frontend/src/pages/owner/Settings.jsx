@@ -14,6 +14,7 @@ import {
   RefreshCw,
   Building2
 } from "lucide-react";
+import { formatNumberWithDots, parseNumberFromDots } from "../../utils/format";
 
 export default function Settings() {
   const [settings, setSettings] = useState({
@@ -67,9 +68,21 @@ export default function Settings() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    
+    let parsedValue;
+    if (type === "checkbox") {
+      parsedValue = checked;
+    } else if (name === "selected_house_id") {
+      parsedValue = value === "" ? null : Number(value);
+    } else if (["default_room_price", "default_electric_price", "default_water_price"].includes(name)) {
+      parsedValue = parseNumberFromDots(value);
+    } else {
+      parsedValue = Number(value);
+    }
+
     setSettings(prev => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : (name === "selected_house_id" ? (value === "" ? null : Number(value)) : Number(value))
+      [name]: parsedValue
     }));
   };
 
@@ -212,16 +225,11 @@ export default function Settings() {
                   </label>
                   <div className="relative">
                     <input
-                      type="number"
+                      type="text"
                       name="default_room_price"
-                      value={settings.default_room_price}
+                      value={formatNumberWithDots(settings.default_room_price)}
                       onChange={handleChange}
                       onFocus={(e) => e.target.select()}
-                      onInput={(e) => {
-                        if (e.target.value.length > 1 && e.target.value.startsWith('0')) {
-                          e.target.value = e.target.value.replace(/^0+/, '');
-                        }
-                      }}
                       placeholder="0"
                       className="w-full pl-4 pr-14 py-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 focus:bg-white outline-none transition-all font-bold text-slate-800"
                     />
@@ -236,16 +244,11 @@ export default function Settings() {
                   </label>
                   <div className="relative">
                     <input
-                      type="number"
+                      type="text"
                       name="default_electric_price"
-                      value={settings.default_electric_price}
+                      value={formatNumberWithDots(settings.default_electric_price)}
                       onChange={handleChange}
                       onFocus={(e) => e.target.select()}
-                      onInput={(e) => {
-                        if (e.target.value.length > 1 && e.target.value.startsWith('0')) {
-                          e.target.value = e.target.value.replace(/^0+/, '');
-                        }
-                      }}
                       placeholder="0"
                       className="w-full pl-4 pr-14 py-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 focus:bg-white outline-none transition-all font-bold text-slate-800"
                     />
@@ -260,16 +263,11 @@ export default function Settings() {
                   </label>
                   <div className="relative">
                     <input
-                      type="number"
+                      type="text"
                       name="default_water_price"
-                      value={settings.default_water_price}
+                      value={formatNumberWithDots(settings.default_water_price)}
                       onChange={handleChange}
                       onFocus={(e) => e.target.select()}
-                      onInput={(e) => {
-                        if (e.target.value.length > 1 && e.target.value.startsWith('0')) {
-                          e.target.value = e.target.value.replace(/^0+/, '');
-                        }
-                      }}
                       placeholder="0"
                       className="w-full pl-4 pr-14 py-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-sky-500/10 focus:border-sky-500 focus:bg-white outline-none transition-all font-bold text-slate-800"
                     />

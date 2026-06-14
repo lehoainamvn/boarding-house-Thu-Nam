@@ -173,7 +173,7 @@ export default function TenantContact() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-180px)] min-h-[550px] bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-180px)] min-h-[400px] md:min-h-[550px] bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
 
       {/* HEADER PHÒNG CHAT */}
       <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white">

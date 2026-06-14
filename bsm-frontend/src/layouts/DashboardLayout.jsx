@@ -9,7 +9,8 @@ import {
   BarChart3,
   MessageSquare,
   Brain,
-  ClipboardList
+  ClipboardList,
+  Menu
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -25,7 +26,9 @@ export default function DashboardLayout() {
   const userMenuRef = useRef(null);
   const notifyRef = useRef(null);
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    return typeof window !== "undefined" ? window.innerWidth >= 768 : true;
+  });
   const [openUserMenu, setOpenUserMenu] = useState(false);
   const [openNotify, setOpenNotify] = useState(false);
   const [showAllModal, setShowAllModal] = useState(false);
@@ -123,9 +126,21 @@ export default function DashboardLayout() {
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-6 shadow-sm relative z-10">
-          <div className="hidden sm:block text-xs font-medium text-slate-400 uppercase tracking-widest">
-            Hệ thống quản lý nhà trọ thông minh
+        <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-4 md:px-6 shadow-sm relative z-10">
+          <div className="flex items-center gap-3">
+            {/* Hamburger menu button for mobile */}
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="md:hidden p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            >
+              <Menu size={20} />
+            </button>
+            <div className="hidden sm:block text-xs font-medium text-slate-400 uppercase tracking-widest">
+              Hệ thống quản lý nhà trọ thông minh
+            </div>
+            <div className="sm:hidden text-sm font-semibold text-slate-800">
+              NaThuStay
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
