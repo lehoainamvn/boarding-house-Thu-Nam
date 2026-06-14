@@ -38,3 +38,8 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Uploads
+bsm-backend/public/uploads/*
+!bsm-backend/public/uploads/.gitkeep
+
