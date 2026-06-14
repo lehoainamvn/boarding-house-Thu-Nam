@@ -18,3 +18,12 @@ export async function verifyVnpayReturn(searchParams) {
   });
   return handleResponse(res, "Lỗi xác thực thanh toán");
 }
+
+export async function confirmBankTransfer(invoiceId) {
+  const res = await fetch(`${API_PAYMENT_URL}/confirm-bank-transfer`, {
+    method: "POST",
+    headers: getAuthHeader(),
+    body: JSON.stringify({ invoiceId })
+  });
+  return handleResponse(res, "Không thể xác nhận chuyển khoản");
+}

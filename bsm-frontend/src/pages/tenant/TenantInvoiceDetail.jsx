@@ -12,9 +12,10 @@ import {
   Download
 } from "lucide-react";
 import html2pdf from "html2pdf.js";
+import toast from "react-hot-toast";
 
 import { getTenantInvoiceDetail } from "../../api/tenantApi";
-import { createPaymentUrl } from "../../api/paymentApi";
+import { confirmBankTransfer } from "../../api/paymentApi";
 
 export default function TenantInvoiceDetail() {
   const { id } = useParams();
@@ -35,19 +36,16 @@ export default function TenantInvoiceDetail() {
     }
   }
 
-  // HÀM XỬ LÝ THANH TOÁN
-  async function handlePayment() {
+  // HÀM XÁC NHẬN CHUYỂN KHOẢN NGÂN HÀNG
+  async function handleConfirmPayment() {
+    if (!window.confirm("Xác nhận bạn đã quét mã và thực hiện chuyển khoản thành công?")) return;
     setIsProcessing(true);
     try {
-      const data = await createPaymentUrl(invoice.total_amount, invoice.id);
-
-      if (data.paymentUrl) {
-        window.location.href = data.paymentUrl;
-      } else {
-        alert("Không thể tạo liên kết thanh toán. Vui lòng thử lại!");
-      }
+      await confirmBankTransfer(invoice.id);
+      toast.success("Đã gửi xác nhận chuyển khoản cho chủ nhà!");
+      loadDetail();
     } catch (err) {
-      console.error("Lỗi kết nối thanh toán:", err);
+      console.error("Lỗi xác nhận chuyển khoản:", err);
       alert(err.message || "Lỗi hệ thống, vui lòng thử lại sau.");
     } finally {
       setIsProcessing(false);
@@ -188,6 +186,15 @@ export default function TenantInvoiceDetail() {
                 icon={Droplets}
               />
             </div>
+            {Number(invoice.service_fee) > 0 && (
+              <div style={{ borderTop: '1px solid #f8fafc', paddingTop: '1rem' }}>
+                <Row 
+                  label="Chi phí phát sinh" 
+                  value={formatMoney(invoice.service_fee)} 
+                  icon={FileText} 
+                />
+              </div>
+            )}
           </div>
 
           {/* HIỆU ỨNG ĐƯỜNG RĂNG CƯA GIẢ LẬP */}
@@ -209,23 +216,94 @@ export default function TenantInvoiceDetail() {
         </div>
       </div>
 
+      {/* KHU VỰC HƯỚNG DẪN CHUYỂN KHOẢN QR */}
+      {invoice.status === "UNPAID" && (
+        <div className="max-w-3xl mx-auto bg-white rounded-3xl p-6 border border-slate-200/60 shadow-sm space-y-6">
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-bold text-slate-800 flex items-center justify-center gap-2">
+              <CreditCard size={20} className="text-indigo-600" /> Chuyển khoản qua Mã QR Ngân hàng
+            </h3>
+            <p className="text-xs text-slate-500 max-w-md mx-auto">
+              Quét mã QR dưới đây bằng ứng dụng ngân hàng của bạn để thanh toán hóa đơn nhanh chóng và chính xác.
+            </p>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center justify-center gap-8">
+            {/* Mã QR */}
+            <div className="w-56 h-56 bg-slate-50 border border-slate-100 rounded-2xl p-2 flex items-center justify-center shadow-sm relative group">
+              {invoice.qr_image_url ? (
+                <img 
+                  src={invoice.qr_image_url} 
+                  alt="Mã QR Thanh Toán" 
+                  className="w-full h-full object-contain rounded-xl"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://placehold.co/200x200?text=Loi+tai+anh+QR";
+                  }}
+                />
+              ) : (
+                invoice.bank_name && invoice.bank_account ? (
+                  <img 
+                    src={`https://img.vietqr.io/image/${invoice.bank_name}-${invoice.bank_account}-compact2.png?amount=${invoice.total_amount}&addInfo=${encodeURIComponent(`Thanh toan phong ${invoice.room_name} thang ${invoice.month}`)}&accountName=${encodeURIComponent(invoice.bank_owner || '')}`} 
+                    alt="VietQR Auto Generated" 
+                    className="w-full h-full object-contain rounded-xl"
+                  />
+                ) : (
+                  <div className="text-center p-4 text-slate-400 text-xs font-medium">
+                    Chủ nhà chưa cấu hình thông tin tài khoản nhận tiền
+                  </div>
+                )
+              )}
+            </div>
+
+            {/* Chi tiết thông tin chuyển khoản */}
+            <div className="flex-1 space-y-3 w-full text-sm">
+              <div className="grid grid-cols-3 border-b border-slate-100 pb-2">
+                <span className="text-slate-500 font-semibold">Ngân hàng:</span>
+                <span className="col-span-2 text-slate-800 font-bold">{invoice.bank_name || "Chưa cấu hình"}</span>
+              </div>
+              <div className="grid grid-cols-3 border-b border-slate-100 pb-2">
+                <span className="text-slate-500 font-semibold">Số tài khoản:</span>
+                <span className="col-span-2 text-slate-800 font-extrabold text-base text-indigo-600 tracking-wider">
+                  {invoice.bank_account || "Chưa cấu hình"}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 border-b border-slate-100 pb-2">
+                <span className="text-slate-500 font-semibold">Chủ tài khoản:</span>
+                <span className="col-span-2 text-slate-800 font-bold uppercase">{invoice.bank_owner || "Chưa cấu hình"}</span>
+              </div>
+              <div className="grid grid-cols-3 border-b border-slate-100 pb-2">
+                <span className="text-slate-500 font-semibold">Số tiền:</span>
+                <span className="col-span-2 text-slate-800 font-black text-base text-emerald-600">{formatMoney(invoice.total_amount)}</span>
+              </div>
+              <div className="grid grid-cols-3 border-b border-slate-100 pb-2">
+                <span className="text-slate-500 font-semibold">Nội dung chuyển:</span>
+                <span className="col-span-2 text-slate-800 font-bold bg-slate-50 px-2 py-0.5 rounded border border-slate-100 select-all">
+                  Thanh toan phong {invoice.room_name} thang {invoice.month}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* NÚT THANH TOÁN */}
       <div className="max-w-3xl mx-auto">
         {invoice.status === "UNPAID" ? (
           <button
-            onClick={handlePayment}
-            disabled={isProcessing}
+            onClick={handleConfirmPayment}
+            disabled={isProcessing || (!invoice.bank_account && !invoice.qr_image_url)}
             className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-600/10 transition-all flex items-center justify-center gap-2 group transform active:scale-[0.98]"
           >
             {isProcessing ? (
               <span className="flex items-center gap-2">
                 <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                ĐANG KẾT NỐI VNPAY...
+                ĐANG GỬI XÁC NHẬN...
               </span>
             ) : (
               <>
-                <CreditCard size={18} className="group-hover:scale-110 transition-transform" />
-                THANH TOÁN NGAY QUA VNPAY
+                <CheckCircle size={18} className="group-hover:scale-110 transition-transform" />
+                XÁC NHẬN TÔI ĐÃ CHUYỂN KHOẢN THÀNH CÔNG
               </>
             )}
           </button>
@@ -237,7 +315,7 @@ export default function TenantInvoiceDetail() {
 
         <p className="text-center text-xs text-slate-400 font-medium mt-4 flex items-center justify-center gap-1.5">
           <ShieldCheck size={12} className="text-emerald-500" />
-          Giao dịch được mã hóa và bảo mật bởi VNPAY Gateway
+          Giao dịch chuyển khoản trực tiếp an toàn và nhanh chóng
         </p>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { getSettings, updateSettings } from "../../api/settingsApi";
 import { getHouses } from "../../api/houseApi";
+import { uploadImage } from "../../api/uploadApi";
 import { 
   Save, 
   Zap, 
@@ -12,7 +13,9 @@ import {
   CircleDollarSign,
   AlertCircle,
   RefreshCw,
-  Building2
+  Building2,
+  Wrench,
+  CreditCard
 } from "lucide-react";
 import { formatNumberWithDots, parseNumberFromDots } from "../../utils/format";
 
@@ -22,6 +25,11 @@ export default function Settings() {
     default_electric_price: 0,
     default_water_price: 0,
     default_room_price: 0,
+    default_service_fee: 0,
+    bank_name: "",
+    bank_account: "",
+    bank_owner: "",
+    qr_image_url: "",
     apply_to_all: false,
     selected_house_id: null
   });
@@ -30,6 +38,7 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showDayPicker, setShowDayPicker] = useState(false);
+  const [uploadingQr, setUploadingQr] = useState(false);
   const isFetched = useRef(false);
 
   useEffect(() => {
@@ -72,9 +81,11 @@ export default function Settings() {
     let parsedValue;
     if (type === "checkbox") {
       parsedValue = checked;
+    } else if (["bank_name", "bank_account", "bank_owner", "qr_image_url"].includes(name)) {
+      parsedValue = value;
     } else if (name === "selected_house_id") {
       parsedValue = value === "" ? null : Number(value);
-    } else if (["default_room_price", "default_electric_price", "default_water_price"].includes(name)) {
+    } else if (["default_room_price", "default_electric_price", "default_water_price", "default_service_fee"].includes(name)) {
       parsedValue = parseNumberFromDots(value);
     } else {
       parsedValue = Number(value);
@@ -84,6 +95,27 @@ export default function Settings() {
       ...prev,
       [name]: parsedValue
     }));
+  };
+
+  const handleQrUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingQr(true);
+    try {
+      const res = await uploadImage(file);
+      if (res.url) {
+        setSettings(prev => ({
+          ...prev,
+          qr_image_url: res.url
+        }));
+        toast.success("Tải ảnh QR lên thành công!");
+      }
+    } catch (err) {
+      toast.error(err.message || "Lỗi tải ảnh lên");
+    } finally {
+      setUploadingQr(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -275,13 +307,138 @@ export default function Settings() {
                   </div>
                 </div>
 
+                {/* CHI PHÍ PHÁT SINH MẶC ĐỊNH */}
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                    <Wrench size={14} className="text-emerald-500" /> Chi phí phát sinh mặc định
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="default_service_fee"
+                      value={formatNumberWithDots(settings.default_service_fee)}
+                      onChange={handleChange}
+                      onFocus={(e) => e.target.select()}
+                      placeholder="0"
+                      className="w-full pl-4 pr-14 py-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white outline-none transition-all font-bold text-slate-800"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">VNĐ</span>
+                  </div>
+                </div>
+
                 {/* INFO BOX */}
-                <div className="bg-slate-50/70 rounded-2xl p-4 flex items-center border border-dashed border-slate-200">
+                <div className="bg-slate-50/70 rounded-2xl p-4 flex items-center border border-dashed border-slate-200 md:col-span-2">
                   <p className="text-[11px] text-slate-500 font-medium">
-                    ✨ Các giá trị này sẽ tự động điền khi bạn thêm phòng mới, giúp thao tác nhanh hơn và đồng bộ.
+                    ✨ Các giá trị này sẽ tự động điền khi bạn thêm phòng mới và tính tiền hóa đơn, giúp thao tác nhanh hơn và đồng bộ.
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* CARD 3: THÔNG TIN THANH TOÁN */}
+          <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200/60 hover:shadow-md transition-shadow">
+            <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-5 flex items-center gap-2">
+              <CreditCard size={16} className="text-indigo-500" /> Tài khoản nhận tiền thanh toán (QR chuyển khoản)
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+              {/* TÊN NGÂN HÀNG */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">Tên ngân hàng</label>
+                <input
+                  type="text"
+                  name="bank_name"
+                  value={settings.bank_name || ""}
+                  onChange={handleChange}
+                  placeholder="Ví dụ: MB, VCB, ACB"
+                  className="w-full px-4 py-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-600/10 focus:border-indigo-600 focus:bg-white outline-none transition-all font-semibold text-slate-800"
+                />
+              </div>
+
+              {/* SỐ TÀI KHOẢN */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">Số tài khoản</label>
+                <input
+                  type="text"
+                  name="bank_account"
+                  value={settings.bank_account || ""}
+                  onChange={handleChange}
+                  placeholder="Nhập số tài khoản"
+                  className="w-full px-4 py-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-600/10 focus:border-indigo-600 focus:bg-white outline-none transition-all font-semibold text-slate-800"
+                />
+              </div>
+
+              {/* TÊN CHỦ TÀI KHOẢN */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">Tên chủ tài khoản</label>
+                <input
+                  type="text"
+                  name="bank_owner"
+                  value={settings.bank_owner || ""}
+                  onChange={handleChange}
+                  placeholder="Ví dụ: NGUYEN VAN A"
+                  className="w-full px-4 py-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-600/10 focus:border-indigo-600 focus:bg-white outline-none transition-all font-semibold text-slate-800 uppercase"
+                />
+              </div>
+
+              {/* LINK ẢNH QR TĨNH & UPLOAD FILE */}
+              <div className="space-y-2 lg:col-span-2">
+                <label className="text-sm font-bold text-slate-700 flex items-center justify-between">
+                  <span>Mã QR nhận tiền (Tùy chọn)</span>
+                  {settings.qr_image_url && (
+                    <button
+                      type="button"
+                      onClick={() => setSettings(prev => ({ ...prev, qr_image_url: "" }))}
+                      className="text-xs text-rose-500 hover:underline font-bold"
+                    >
+                      Xóa ảnh QR
+                    </button>
+                  )}
+                </label>
+                
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  {/* Preview ảnh QR */}
+                  <div className="w-20 h-20 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0 shadow-inner">
+                    {settings.qr_image_url ? (
+                      <img src={settings.qr_image_url} alt="QR Preview" className="w-full h-full object-contain" />
+                    ) : (
+                      <span className="text-[10px] text-slate-400 font-semibold text-center p-2">Chưa có ảnh QR</span>
+                    )}
+                  </div>
+
+                  <div className="flex-1 w-full space-y-2">
+                    <div className="flex items-center gap-2">
+                      <label className="cursor-pointer inline-flex items-center justify-center px-4 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all active:scale-95">
+                        {uploadingQr ? "Đang tải lên..." : "Chọn ảnh từ máy"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleQrUpload}
+                          disabled={uploadingQr}
+                          className="hidden"
+                        />
+                      </label>
+                      <span className="text-[10px] text-slate-400 font-medium">Hỗ trợ JPG, PNG (Tối đa 5MB)</span>
+                    </div>
+
+                    <input
+                      type="text"
+                      name="qr_image_url"
+                      value={settings.qr_image_url || ""}
+                      onChange={handleChange}
+                      placeholder="Hoặc dán đường dẫn ảnh QR vào đây..."
+                      className="w-full px-4 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-600/10 focus:border-indigo-600 focus:bg-white outline-none transition-all font-semibold text-slate-800"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 bg-slate-50/70 rounded-2xl p-4 flex items-center border border-dashed border-slate-200">
+              <p className="text-[11px] text-slate-500 font-medium">
+                💡 Hệ thống sẽ tự động sinh mã QR VietQR (đã điền sẵn số tiền và nội dung chuyển khoản) cho người thuê dựa trên Tên ngân hàng, Số tài khoản và Tên chủ tài khoản. Nếu bạn điền Link QR tĩnh, hệ thống sẽ sử dụng ảnh của bạn thay thế.
+              </p>
             </div>
           </div>
 

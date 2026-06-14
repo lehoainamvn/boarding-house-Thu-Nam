@@ -168,6 +168,9 @@ export default function InvoiceDetail() {
               <CostRow label="Chi phí thuê phòng" value={money(invoice.room_price)} />
               <CostRow label="Sử dụng điện" value={money(invoice.electric_cost)} />
               <CostRow label="Sử dụng nước" value={money(invoice.water_cost)} />
+              {Number(invoice.service_fee) > 0 && (
+                <CostRow label="Chi phí phát sinh" value={money(invoice.service_fee)} />
+              )}
             </div>
 
             {/* Đường gạch phân cách */}
